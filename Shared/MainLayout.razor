@@ -1,0 +1,19 @@
+@using Microsoft.AspNetCore.Components.Web
+@using InventoryManagement.Shared  <!-- or your project namespace where NavMenu lives -->
+
+@inherits LayoutComponentBase
+
+<PageTitle>Inventory Management</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <!-- Add your nav menu here -->
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="content px-4">
+            @Body
+        </div>
+    </main>
+</div>
