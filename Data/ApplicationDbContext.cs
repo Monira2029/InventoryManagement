@@ -11,8 +11,10 @@ namespace InventoryManagement.Data
         {
         }
 
-        public DbSet<Product> Products => Set<Product>();
-        public DbSet<Category> Categories => Set<Category>();
-        public DbSet<Supplier> Suppliers => Set<Supplier>();
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Inventory> Inventories { get; set; }
+        public DbSet<Item> Items { get; set; }
     }
 }

@@ -1,19 +1,42 @@
-@using Microsoft.AspNetCore.Components.Web
-@using InventoryManagement.Shared  <!-- or your project namespace where NavMenu lives -->
-
 @inherits LayoutComponentBase
 
-<PageTitle>Inventory Management</PageTitle>
+<div class="container-fluid p-0">
+    <header class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+        <a class="navbar-brand" href="/">Inventory</a>
 
-<div class="page">
-    <div class="sidebar">
-        <!-- Add your nav menu here -->
-        <NavMenu />
-    </div>
+        <div class="d-flex align-items-center ms-auto">
+            <!-- Theme Toggle -->
+            <button class="btn btn-outline-light me-2" @onclick="ToggleTheme">
+                <i class="fa" @(isDark ? "fa-sun" : "fa-moon")></i>
+            </button>
 
-    <main>
-        <div class="content px-4">
-            @Body
+            <!-- Language -->
+            <select class="form-select form-select-sm bg-dark text-light me-3" style="width:100px"
+                    @onchange="ChangeLanguage">
+                <option value="en">EN</option>
+                <option value="bn">বাংলা</option>
+            </select>
+
+            <!-- Auth -->
+            <a class="btn btn-outline-light" href="/Identity/Account/Login">Login</a>
         </div>
+    </header>
+
+    <main class="p-4">
+        @Body
     </main>
 </div>
+
+@code {
+    bool isDark = false;
+
+    void ToggleTheme()
+    {
+        isDark = !isDark;
+    }
+
+    void ChangeLanguage(ChangeEventArgs e)
+    {
+        Console.WriteLine($"Language changed to: {e.Value}");
+    }
+}

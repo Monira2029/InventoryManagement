@@ -1,0 +1,97 @@
+@page "/categories"
+@inject InventoryManagement.Data.ApplicationDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<h3>Categories</h3>
+
+<div class="mb-3">
+    <input class="form-control" @bind="newName" placeholder="New category name" />
+    <button class="btn btn-primary mt-2" @onclick="Create">Add Category</button>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr><th>Name</th><th>Description</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in categories)
+        {
+            <tr>
+                <td>@(editId == c.Id ? (MarkupString)$"<input class='form-control' @bind='editName' />" : c.Name)</td>
+                <td>@(editId == c.Id ? (MarkupString)$"<input class='form-control' @bind='editDescription' />" : c.Description)</td>
+                <td>
+                    @if (editId == c.Id)
+                    {
+                        <button class="btn btn-sm btn-success" @onclick="() => SaveEdit(c.Id)">Save</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(c)">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(c.Id)">Delete</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<Category> categories = new();
+    string newName = "";
+    string newDesc = "";
+    int? editId;
+    string editName = "";
+    string editDescription = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await Db.Categories.OrderBy(c => c.Name).ToListAsync();
+    }
+
+    async Task Create()
+    {
+        if (string.IsNullOrWhiteSpace(newName)) return;
+        var c = new Category { Name = newName.Trim(), Description = newDesc?.Trim() ?? "" };
+        Db.Categories.Add(c);
+        await Db.SaveChangesAsync();
+        newName = newDesc = "";
+        categories = await Db.Categories.OrderBy(x => x.Name).ToListAsync();
+    }
+
+    void StartEdit(Category c)
+    {
+        editId = c.Id;
+        editName = c.Name;
+        editDescription = c.Description;
+    }
+
+    void CancelEdit()
+    {
+        editId = null;
+    }
+
+    async Task SaveEdit(int id)
+    {
+        var c = await Db.Categories.FindAsync(id);
+        if (c != null)
+        {
+            c.Name = editName;
+            c.Description = editDescription;
+            await Db.SaveChangesAsync();
+            categories = await Db.Categories.OrderBy(x => x.Name).ToListAsync();
+            editId = null;
+        }
+    }
+
+    async Task Delete(int id)
+    {
+        var c = await Db.Categories.FindAsync(id);
+        if (c != null)
+        {
+            Db.Categories.Remove(c);
+            await Db.SaveChangesAsync();
+            categories = await Db.Categories.OrderBy(x => x.Name).ToListAsync();
+        }
+    }
+}

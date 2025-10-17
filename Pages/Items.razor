@@ -1,0 +1,48 @@
+@page "/items"
+@inject ApplicationDbContext Db
+
+<h3>Items</h3>
+
+<input class="form-control" @bind="newItem.Name" placeholder="Item name" />
+<textarea class="form-control mt-2" @bind="newItem.Description" placeholder="Description"></textarea>
+<button class="btn btn-primary mt-2" @onclick="CreateItem">Add Item</button>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in items)
+        {
+            <tr>
+                <td>@i.CustomId</td>
+                <td>@i.Name</td>
+                <td>@i.Description</td>
+                <td>@i.CreatedAt</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<Item> items = new();
+    Item newItem = new();
+
+    protected override void OnInitialized()
+    {
+        items = Db.Items.ToList();
+    }
+
+    async Task CreateItem()
+    {
+        Db.Items.Add(newItem);
+        await Db.SaveChangesAsync();
+        items.Add(newItem);
+        newItem = new Item();
+    }
+}

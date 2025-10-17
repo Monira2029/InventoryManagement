@@ -11,13 +11,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // -------------------------------------------
-// 2️⃣ Identity Configuration
+// 2️⃣ Identity Configuration (with Roles)
 // -------------------------------------------
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
 })
-.AddEntityFrameworkStores<ApplicationDbContext>();
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
 // -------------------------------------------
 // 3️⃣ Blazor & SignalR Setup
@@ -26,10 +27,29 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSignalR();
 
+// -------------------------------------------
+// 4️⃣ Build Application
+// -------------------------------------------
 var app = builder.Build();
 
 // -------------------------------------------
-// 4️⃣ Middleware & Request Pipeline
+// 5️⃣ Seed Initial Roles / Admin User
+// -------------------------------------------
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await SeedData.EnsureSeedData(services);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error seeding data: {ex.Message}");
+    }
+}
+
+// -------------------------------------------
+// 6️⃣ Middleware & Request Pipeline
 // -------------------------------------------
 if (!app.Environment.IsDevelopment())
 {
@@ -40,6 +60,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -47,4 +68,4 @@ app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
-app.Run();
+await app.RunAsync();

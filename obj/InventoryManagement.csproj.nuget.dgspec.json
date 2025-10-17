@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\InventoryManagement\\InventoryManagement.csproj": {}
+    "C:\\PROJECTS\\InventoryManagement\\InventoryManagement.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\InventoryManagement\\InventoryManagement.csproj": {
+    "C:\\PROJECTS\\InventoryManagement\\InventoryManagement.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\InventoryManagement\\InventoryManagement.csproj",
+        "projectUniqueName": "C:\\PROJECTS\\InventoryManagement\\InventoryManagement.csproj",
         "projectName": "InventoryManagement",
-        "projectPath": "C:\\Projects\\InventoryManagement\\InventoryManagement.csproj",
+        "projectPath": "C:\\PROJECTS\\InventoryManagement\\InventoryManagement.csproj",
         "packagesPath": "C:\\Users\\ABUL HASHEM\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\InventoryManagement\\obj\\",
+        "outputPath": "C:\\PROJECTS\\InventoryManagement\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ABUL HASHEM\\AppData\\Roaming\\NuGet\\NuGet.Config"

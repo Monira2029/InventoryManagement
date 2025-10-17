@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LfK0oC0vZN4=",
+  "dgSpecHash": "DaafBH22wtM=",
   "success": true,
-  "projectFilePath": "C:\\Projects\\InventoryManagement\\InventoryManagement.csproj",
+  "projectFilePath": "C:\\PROJECTS\\InventoryManagement\\InventoryManagement.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ABUL HASHEM\\.nuget\\packages\\blazored.localstorage\\4.5.0\\blazored.localstorage.4.5.0.nupkg.sha512",
     "C:\\Users\\ABUL HASHEM\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
