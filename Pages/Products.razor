@@ -1,97 +1,113 @@
 @page "/products"
-@inject InventoryManagement.Data.ApplicationDbContext Db
+@using InventoryManagement.Data
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _context
 
 <h3>Products</h3>
 
-<div class="row mb-3">
-    <div class="col-md-4">
-        <input class="form-control" @bind="newName" placeholder="Product name" />
-    </div>
-    <div class="col-md-2">
-        <input class="form-control" type="number" @bind="newQty" placeholder="Qty" />
-    </div>
-    <div class="col-md-2">
-        <input class="form-control" type="number" step="0.01" @bind="newPrice" placeholder="Price" />
-    </div>
-    <div class="col-md-2">
-        <select class="form-select" @bind="newCategoryId">
-            <option value="0">Select category</option>
-            @foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }
-        </select>
-    </div>
-    <div class="col-md-2">
-        <select class="form-select" @bind="newSupplierId">
-            <option value="0">Supplier</option>
-            @foreach (var s in suppliers) { <option value="@s.Id">@s.Name</option> }
-        </select>
-    </div>
-</div>
+<button class="btn btn-primary mb-3" @onclick="() => isAdding = true">Add Product</button>
 
-<button class="btn btn-primary mb-3" @onclick="Create">Add Product</button>
+@if (isAdding)
+{
+    <EditForm Model="newProduct" OnValidSubmit="AddProduct">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-<table class="table table-striped">
-    <thead><tr><th>Name</th><th>Qty</th><th>Price</th><th>Category</th><th>Supplier</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var p in products)
-        {
+        <div class="mb-2">
+            <InputText class="form-control" @bind-Value="newProduct.Name" placeholder="Product Name" />
+        </div>
+
+        <div class="mb-2">
+            <InputNumber @typeparam="int" class="form-control" @bind-Value="newProduct.Quantity" placeholder="Quantity" />
+        </div>
+
+        <div class="mb-2">
+            <InputNumber @typeparam="decimal" class="form-control" @bind-Value="newProduct.Price" placeholder="Price" />
+        </div>
+
+        <div class="mb-2">
+            <label>Category</label>
+            <InputSelect @typeparam="int" class="form-select" @bind-Value="newProduct.CategoryId">
+                <option value="">--Select--</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-2">
+            <label>Supplier</label>
+            <InputSelect @typeparam="int" class="form-select" @bind-Value="newProduct.SupplierId">
+                <option value="">--Select--</option>
+                @foreach (var s in suppliers)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <button type="button" class="btn btn-secondary" @onclick="() => isAdding = false">Cancel</button>
+    </EditForm>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@p.Name</td>
-                <td>@p.Quantity</td>
-                <td>@p.Price</td>
-                <td>@p.Category?.Name</td>
-                <td>@p.Supplier?.Name</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(p.Id)">Delete</button>
-                </td>
+                <th>Name</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Supplier</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var p in products)
+            {
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@p.Quantity</td>
+                    <td>@p.Price</td>
+                    <td>@p.Category?.Name</td>
+                    <td>@p.Supplier?.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-    List<Product> products = new();
-    List<Category> categories = new();
-    List<Supplier> suppliers = new();
-
-    string newName = "";
-    int newQty = 0;
-    decimal newPrice = 0;
-    int newCategoryId = 0;
-    int newSupplierId = 0;
+    private bool isAdding = false;
+    private Product newProduct = new();
+    private List<Product> products = new();
+    private List<Category> categories = new();
+    private List<Supplier> suppliers = new();
 
     protected override async Task OnInitializedAsync()
     {
-        categories = await Db.Categories.OrderBy(c => c.Name).ToListAsync();
-        suppliers = await Db.Suppliers.OrderBy(s => s.Name).ToListAsync();
-        products = await Db.Products.Include(p => p.Category).Include(p => p.Supplier).ToListAsync();
+        categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+        suppliers = await _context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+        await LoadProducts();
     }
 
-    async Task Create()
+    private async Task AddProduct()
     {
-        if (string.IsNullOrWhiteSpace(newName) || newCategoryId == 0) return;
-        var p = new Product
-        {
-            Name = newName.Trim(),
-            Quantity = newQty,
-            Price = newPrice,
-            CategoryId = newCategoryId,
-            SupplierId = newSupplierId
-        };
-        Db.Products.Add(p);
-        await Db.SaveChangesAsync();
-        products = await Db.Products.Include(p => p.Category).Include(p => p.Supplier).ToListAsync();
-        newName = ""; newQty = 0; newPrice = 0; newCategoryId = 0; newSupplierId = 0;
+        _context.Products.Add(newProduct);
+        await _context.SaveChangesAsync();
+        isAdding = false;
+        newProduct = new Product();
+        await LoadProducts();
     }
 
-    async Task Delete(int id)
+    private async Task LoadProducts()
     {
-        var p = await Db.Products.FindAsync(id);
-        if (p != null)
-        {
-            Db.Products.Remove(p);
-            await Db.SaveChangesAsync();
-            products = await Db.Products.Include(p => p.Category).Include(p => p.Supplier).ToListAsync();
-        }
+        products = await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
     }
 }

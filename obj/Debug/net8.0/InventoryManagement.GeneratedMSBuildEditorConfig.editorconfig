@@ -66,6 +66,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW52ZW50b3JpZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/PROJECTS/InventoryManagement/Pages/InventoryDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW52ZW50b3J5RGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/PROJECTS/InventoryManagement/Pages/ItemForm.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSXRlbUZvcm0ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/PROJECTS/InventoryManagement/Pages/Items.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSXRlbXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
