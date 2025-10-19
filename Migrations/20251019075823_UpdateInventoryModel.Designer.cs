@@ -3,6 +3,7 @@ using System;
 using InventoryManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251019075823_UpdateInventoryModel")]
+    partial class UpdateInventoryModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,13 +34,11 @@ namespace InventoryManagement.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -59,8 +60,7 @@ namespace InventoryManagement.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -127,8 +127,7 @@ namespace InventoryManagement.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
@@ -162,8 +161,7 @@ namespace InventoryManagement.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -377,7 +375,7 @@ namespace InventoryManagement.Migrations
                         .HasForeignKey("CategoryId");
 
                     b.HasOne("InventoryManagement.Models.Supplier", "Supplier")
-                        .WithMany("Inventories")
+                        .WithMany()
                         .HasForeignKey("SupplierId");
 
                     b.Navigation("Category");
@@ -399,7 +397,7 @@ namespace InventoryManagement.Migrations
             modelBuilder.Entity("InventoryManagement.Models.Product", b =>
                 {
                     b.HasOne("InventoryManagement.Models.Category", "Category")
-                        .WithMany("Products")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -469,14 +467,10 @@ namespace InventoryManagement.Migrations
             modelBuilder.Entity("InventoryManagement.Models.Category", b =>
                 {
                     b.Navigation("Inventories");
-
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("InventoryManagement.Models.Supplier", b =>
                 {
-                    b.Navigation("Inventories");
-
                     b.Navigation("Products");
                 });
 #pragma warning restore 612, 618

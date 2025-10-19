@@ -1,104 +1,100 @@
+@using Microsoft.EntityFrameworkCore
 @page "/inventories"
-@using InventoryManagement.Models
-@inject ApplicationDbContext _context
-@inject NavigationManager Navigation
+@inject ApplicationDbContext Db
 
-<h3 class="mb-3">Inventories</h3>
+<h3>📦 Inventories</h3>
 
-<input class="form-control mb-3" @bind="searchText" placeholder="Search inventories..." />
-
-<button class="btn btn-primary mb-3" @onclick="ShowAddModal">➕ Add Inventory</button>
-
-@if (filteredInventories == null)
+@if (isLoading)
 {
     <p><em>Loading...</em></p>
 }
-else if (filteredInventories.Count == 0)
-{
-    <p>No inventories found.</p>
-}
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Created</th>
-                <th>Public</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var inv in filteredInventories)
-            {
+    <button class="btn btn-primary mb-3" @onclick="NewInventory">Add New Inventory</button>
+
+    @if (showForm)
+    {
+        <EditForm Model="newInventory" OnValidSubmit="SaveInventory">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-3">
+                <label>Title</label>
+                <InputText class="form-control" @bind="newInventory.Title" />
+            </div>
+
+            <div class="mb-3">
+                <label>Description</label>
+                <InputTextArea class="form-control" @bind="newInventory.Description" />
+            </div>
+
+            <button type="submit" class="btn btn-success">💾 Save</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+        </EditForm>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>@inv.Title</td>
-                    <td>@inv.Category</td>
-                    <td>@inv.CreatedAt.ToShortDateString()</td>
-                    <td>@(inv.IsPublic ? "✅" : "❌")</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-1" @onclick="() => EditInventory(inv)">✏️</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteInventory(inv.Id)">🗑️</button>
-                    </td>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var inv in inventories)
+                {
+                    <tr>
+                        <td>@inv.Title</td>
+                        <td>@inv.Description</td>
+                        <td>@inv.CreatedAt.ToLocalTime()</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" @onclick="() => Delete(inv.Id)">🗑 Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 @code {
-    private List<Inventory> filteredInventories;
-    private string searchText = "";
-    private bool showAddModal = false;
+    private List<Inventory> inventories = new();
     private Inventory newInventory = new();
+    private bool showForm = false;
+    private bool isLoading = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        filteredInventories = _context.Inventories.ToList();
+        inventories = await Db.Inventories.OrderByDescending(x => x.CreatedAt).ToListAsync();
+        isLoading = false;
     }
 
-    private void ShowAddModal()
+    void NewInventory()
     {
         newInventory = new();
-        showAddModal = true;
+        showForm = true;
     }
 
-    private void AddInventory()
+    void Cancel() => showForm = false;
+
+    async Task SaveInventory()
     {
-        _context.Inventories.Add(newInventory);
-        _context.SaveChanges();
-        filteredInventories = _context.Inventories.ToList();
-        showAddModal = false;
+        Db.Inventories.Add(newInventory);
+        await Db.SaveChangesAsync();
+        showForm = false;
+        inventories = await Db.Inventories.ToListAsync();
     }
 
-    private void EditInventory(Inventory inv)
+    async Task Delete(int id)
     {
-        newInventory = inv;
-        showAddModal = true;
-    }
-
-    private void DeleteInventory(int id)
-    {
-        var inv = _context.Inventories.Find(id);
+        var inv = await Db.Inventories.FindAsync(id);
         if (inv != null)
         {
-            _context.Inventories.Remove(inv);
-            _context.SaveChanges();
-            filteredInventories = _context.Inventories.ToList();
+            Db.Inventories.Remove(inv);
+            await Db.SaveChangesAsync();
+            inventories = await Db.Inventories.ToListAsync();
         }
-    }
-
-    private List<Inventory> SearchInventories(string text)
-    {
-        return _context.Inventories
-            .Where(i => i.Title.Contains(text, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-    }
-
-    private void OnSearch(ChangeEventArgs e)
-    {
-        searchText = e.Value?.ToString() ?? "";
-        filteredInventories = SearchInventories(searchText);
     }
 }

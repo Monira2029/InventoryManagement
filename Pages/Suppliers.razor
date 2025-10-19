@@ -1,96 +1,101 @@
-@page "/suppliers"
-@inject InventoryManagement.Data.ApplicationDbContext Db
 @using Microsoft.EntityFrameworkCore
+@page "/suppliers"
+@inject ApplicationDbContext Db
 
-<h3>Suppliers</h3>
+<h3> Suppliers</h3>
 
-<div class="mb-3">
-    <input class="form-control" @bind="newName" placeholder="New supplier name" />
-    <input class="form-control mt-2" @bind="newEmail" placeholder="Contact email" />
-    <button class="btn btn-primary mt-2" @onclick="Create">Add Supplier</button>
-</div>
+@if (suppliers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-primary mb-3" @onclick="NewSupplier">Add Supplier</button>
 
-<table class="table table-striped">
-    <thead>
-        <tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr>
-    </thead>
-    <tbody>
-        @foreach (var s in suppliers)
-        {
-            <tr>
-                <td>@(editId == s.Id ? (MarkupString)$"<input class='form-control' @bind='editName' />" : s.Name)</td>
-                <td>@(editId == s.Id ? (MarkupString)$"<input class='form-control' @bind='editEmail' />" : s.ContactEmail)</td>
-                <td>@(editId == s.Id ? (MarkupString)$"<input class='form-control' @bind='editPhone' />" : s.PhoneNumber)</td>
-                <td>
-                    @if (editId == s.Id)
-                    {
-                        <button class="btn btn-sm btn-success" @onclick="() => SaveEdit(s.Id)">Save</button>
-                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(s)">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(s.Id)">Delete</button>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    @if (showForm)
+    {
+        <EditForm Model="newSupplier" OnValidSubmit="SaveSupplier">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-3">
+                <label>Name</label>
+                <InputText class="form-control" @bind="newSupplier.Name" />
+            </div>
+            <div class="mb-3">
+                <label>Email</label>
+                <InputText class="form-control" @bind="newSupplier.ContactEmail" />
+            </div>
+            <div class="mb-3">
+                <label>Phone</label>
+                <InputText class="form-control" @bind="newSupplier.PhoneNumber" />
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+        </EditForm>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in suppliers)
+                {
+                    <tr>
+                        <td>@s.Name</td>
+                        <td>@s.ContactEmail</td>
+                        <td>@s.PhoneNumber</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteSupplier(s.Id)">🗑 Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
 
 @code {
-    List<Supplier> suppliers = new();
-    string newName = "", newEmail = "", newPhone = "";
-    int? editId;
-    string editName = "", editEmail = "", editPhone = "";
+    private List<Supplier>? suppliers;
+    private Supplier newSupplier = new();
+    private bool showForm = false;
 
     protected override async Task OnInitializedAsync()
     {
-        suppliers = await Db.Suppliers.OrderBy(s => s.Name).ToListAsync();
+        suppliers = await Db.Suppliers.ToListAsync();
     }
 
-    async Task Create()
+    void NewSupplier()
     {
-        if (string.IsNullOrWhiteSpace(newName)) return;
-        var s = new Supplier { Name = newName.Trim(), ContactEmail = newEmail?.Trim() ?? "", PhoneNumber = newPhone?.Trim() ?? "" };
-        Db.Suppliers.Add(s);
+        newSupplier = new();
+        showForm = true;
+    }
+
+    void Cancel() => showForm = false;
+
+    async Task SaveSupplier()
+    {
+        Db.Suppliers.Add(newSupplier);
         await Db.SaveChangesAsync();
-        newName = newEmail = newPhone = "";
-        suppliers = await Db.Suppliers.OrderBy(x => x.Name).ToListAsync();
+        showForm = false;
+        suppliers = await Db.Suppliers.ToListAsync();
     }
 
-    void StartEdit(Supplier s)
+    async Task DeleteSupplier(int id)
     {
-        editId = s.Id;
-        editName = s.Name;
-        editEmail = s.ContactEmail;
-        editPhone = s.PhoneNumber;
-    }
-
-    void CancelEdit() => editId = null;
-
-    async Task SaveEdit(int id)
-    {
-        var s = await Db.Suppliers.FindAsync(id);
-        if (s != null)
+        var supplier = await Db.Suppliers.FindAsync(id);
+        if (supplier != null)
         {
-            s.Name = editName;
-            s.ContactEmail = editEmail;
-            s.PhoneNumber = editPhone;
+            Db.Suppliers.Remove(supplier);
             await Db.SaveChangesAsync();
-            suppliers = await Db.Suppliers.OrderBy(x => x.Name).ToListAsync();
-            editId = null;
-        }
-    }
-
-    async Task Delete(int id)
-    {
-        var s = await Db.Suppliers.FindAsync(id);
-        if (s != null)
-        {
-            Db.Suppliers.Remove(s);
-            await Db.SaveChangesAsync();
-            suppliers = await Db.Suppliers.OrderBy(x => x.Name).ToListAsync();
+            suppliers = await Db.Suppliers.ToListAsync();
         }
     }
 }

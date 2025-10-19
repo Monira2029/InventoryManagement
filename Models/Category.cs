@@ -7,11 +7,14 @@ namespace InventoryManagement.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required, StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        public string? Description { get; set; } // ✅ Add this line
+        [StringLength(255)]
+        public string? Description { get; set; }
 
+        // ✅ Navigation property for related entities
         public ICollection<Inventory>? Inventories { get; set; }
+        public ICollection<Product>? Products { get; set; }
     }
 }
