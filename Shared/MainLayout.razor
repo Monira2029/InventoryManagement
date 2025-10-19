@@ -1,42 +1,36 @@
 @inherits LayoutComponentBase
 
-<div class="container-fluid p-0">
-    <header class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-        <a class="navbar-brand" href="/">Inventory</a>
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
 
-        <div class="d-flex align-items-center ms-auto">
-            <!-- Theme Toggle -->
-            <button class="btn btn-outline-light me-2" @onclick="ToggleTheme">
-                <i class="fa" @(isDark ? "fa-sun" : "fa-moon")></i>
-            </button>
-
-            <!-- Language -->
-            <select class="form-select form-select-sm bg-dark text-light me-3" style="width:100px"
-                    @onchange="ChangeLanguage">
-                <option value="en">EN</option>
-                <option value="bn">বাংলা</option>
-            </select>
-
-            <!-- Auth -->
-            <a class="btn btn-outline-light" href="/Identity/Account/Login">Login</a>
+    <main>
+        <div class="content px-4">
+            @Body
         </div>
-    </header>
-
-    <main class="p-4">
-        @Body
     </main>
 </div>
 
-@code {
-    bool isDark = false;
-
-    void ToggleTheme()
-    {
-        isDark = !isDark;
+<style>
+    .page {
+        display: flex;
+        min-height: 100vh;
     }
 
-    void ChangeLanguage(ChangeEventArgs e)
-    {
-        Console.WriteLine($"Language changed to: {e.Value}");
+    .sidebar {
+        width: 220px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 1rem;
     }
-}
+
+    main {
+        flex: 1;
+        background-color: #f9f9f9;
+    }
+
+    .content {
+        padding: 20px;
+    }
+</style>

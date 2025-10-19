@@ -1,4 +1,6 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InventoryManagement.Models
 {
@@ -8,12 +10,15 @@ namespace InventoryManagement.Models
 
         [Required]
         public string Title { get; set; } = string.Empty;
+
         public string? Description { get; set; }
 
-        public int CategoryId { get; set; }
-        public Category? Category { get; set; }
+        public bool IsPublic { get; set; } = false; // ✅ Add this line
 
-        public bool IsPublic { get; set; } = true;
+        public int? CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public Category? Category { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

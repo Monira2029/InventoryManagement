@@ -49,3 +49,17 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.app-container.bg-dark {
+    background-color: #121212 !important;
+    color: #f1f1f1 !important;
+}
+
+.app-container.bg-light {
+    background-color: #ffffff !important;
+    color: #212121 !important;
+}
+
+select.form-select {
+    min-width: 80px;
+}
