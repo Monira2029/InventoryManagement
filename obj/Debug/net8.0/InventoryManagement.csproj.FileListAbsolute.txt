@@ -9,6 +9,7 @@ C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\InventoryManagement.pdb
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Azure.Core.dll
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Azure.Identity.dll
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Blazored.LocalStorage.dll
+C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Blazored.Typeahead.dll
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Humanizer.dll
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Connections.Abstractions.dll
 C:\PROJECTS\InventoryManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Http.Connections.Client.dll

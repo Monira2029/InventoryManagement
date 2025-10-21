@@ -1,48 +1,70 @@
 @page "/items"
+@using InventoryManagement.Models
 @inject ApplicationDbContext Db
 
-<h3>Items</h3>
+<h3 class="mb-3">Items</h3>
 
-<input class="form-control" @bind="newItem.Name" placeholder="Item name" />
-<textarea class="form-control mt-2" @bind="newItem.Description" placeholder="Description"></textarea>
-<button class="btn btn-primary mt-2" @onclick="CreateItem">Add Item</button>
+<!-- Create Item Form -->
+<div class="card p-3 mb-3">
+    <input class="form-control mb-2" @bind="newItem.Title" placeholder="Item title" />
+    <textarea class="form-control mb-2" @bind="newItem.Note" placeholder="Note or description"></textarea>
+    <input class="form-control mb-2" @bind="newItem.CustomId" placeholder="Custom ID (optional)" />
 
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Created</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var i in items)
-        {
+    <button class="btn btn-primary" @onclick="CreateItem">Add Item</button>
+</div>
+
+<!-- Item List Table -->
+@if (items == null || !items.Any())
+{
+    <p>No items found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@i.CustomId</td>
-                <td>@i.Name</td>
-                <td>@i.Description</td>
-                <td>@i.CreatedAt</td>
+                <th>Custom ID</th>
+                <th>Title</th>
+                <th>Note</th>
+                <th>Created At</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var i in items)
+            {
+                <tr>
+                    <td>@i.CustomId</td>
+                    <td>@i.Title</td>
+                    <td>@i.Note</td>
+                    <td>@i.CreatedAt.ToLocalTime().ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-    List<Item> items = new();
-    Item newItem = new();
+    private List<Item> items = new();
+    private Item newItem = new();
 
     protected override void OnInitialized()
     {
+        // Load existing items from database
         items = Db.Items.ToList();
     }
 
-    async Task CreateItem()
+    private async Task CreateItem()
     {
+        if (string.IsNullOrWhiteSpace(newItem.Title))
+            return; // optional simple validation
+
+        newItem.CreatedAt = DateTime.UtcNow;
         Db.Items.Add(newItem);
         await Db.SaveChangesAsync();
+
+        // Refresh list
         items.Add(newItem);
         newItem = new Item();
+        StateHasChanged();
     }
 }

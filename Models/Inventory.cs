@@ -5,26 +5,25 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace InventoryManagement.Models
 {
     public class Inventory
-    {
-        [Key]
-        public int Id { get; set; }
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int? CategoryId { get; set; }
+    public Category? Category { get; set; }
 
-        [Required, StringLength(100)]
-        public string Title { get; set; } = string.Empty;
+    // image stored as external URL (do not upload to server)
+    public string? ImageUrl { get; set; }
 
-        [StringLength(255)]
-        public string? Description { get; set; }
+    public bool IsPublic { get; set; } = false;
+    public string CreatedById { get; set; } = string.Empty; // IdentityUser.Id
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey(nameof(Category))]
-        public int? CategoryId { get; set; }
-        public Category? Category { get; set; }
-
-        [ForeignKey(nameof(Supplier))]
-        public int? SupplierId { get; set; }
-        public Supplier? Supplier { get; set; }
-
-        public bool IsPublic { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public ICollection<InventoryTag>? InventoryTags { get; set; }
+    public ICollection<CustomField>? CustomFields { get; set; }
+    public ICollection<InventoryAccess>? AccessList { get; set; }
 }
+
+}
+
+   
