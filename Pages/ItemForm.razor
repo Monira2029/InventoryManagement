@@ -1,0 +1,118 @@
+@page "/item-form"
+
+<EditForm Model="@itemModel" OnValidSubmit="@SaveItem">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Custom ID</label>
+        <InputText @bind-Value="itemModel.CustomId" class="form-control" />
+    </div>
+
+    @foreach (var f in fields)
+    {
+        <div class="mb-3">
+            <label>@f.Name</label>
+
+            @if (f.Type == FieldType.SingleLine)
+            {
+                <InputText @bind-Value="((FieldValue<string>)values[f.Id]).Value" class="form-control" />
+            }
+            else if (f.Type == FieldType.MultiLine)
+            {
+                <InputTextArea @bind-Value="((FieldValue<string>)values[f.Id]).Value" class="form-control" />
+            }
+            else if (f.Type == FieldType.Number)
+            {
+                <InputNumber TValue="decimal" @bind-Value="((FieldValue<decimal>)values[f.Id]).Value" class="form-control" />
+            }
+            else if (f.Type == FieldType.Boolean)
+            {
+                <InputCheckbox @bind-Value="((FieldValue<bool>)values[f.Id]).Value" />
+            }
+            else if (f.Type == FieldType.Link)
+            {
+                <InputText @bind-Value="((FieldValue<string>)values[f.Id]).Value" class="form-control" />
+            }
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    private ItemModel itemModel = new();
+    private List<FieldDefinition> fields = new();
+    private Dictionary<Guid, object> values = new();
+
+    protected override void OnInitialized()
+    {
+        fields = new List<FieldDefinition>
+        {
+            new FieldDefinition { Id = Guid.NewGuid(), Name = "Name", Type = FieldType.SingleLine },
+            new FieldDefinition { Id = Guid.NewGuid(), Name = "Description", Type = FieldType.MultiLine },
+            new FieldDefinition { Id = Guid.NewGuid(), Name = "Price", Type = FieldType.Number },
+            new FieldDefinition { Id = Guid.NewGuid(), Name = "Is Active", Type = FieldType.Boolean },
+            new FieldDefinition { Id = Guid.NewGuid(), Name = "Website", Type = FieldType.Link }
+        };
+
+        foreach (var f in fields)
+        {
+            values[f.Id] = f.Type switch
+            {
+                FieldType.Number => new FieldValue<decimal>(0m),
+                FieldType.Boolean => new FieldValue<bool>(false),
+                _ => new FieldValue<string>("")
+            };
+        }
+    }
+
+    private void SaveItem()
+    {
+        Console.WriteLine($"Saving item {itemModel.CustomId}");
+        foreach (var f in fields)
+        {
+            var val = values[f.Id];
+            switch (f.Type)
+            {
+                case FieldType.Number:
+                    Console.WriteLine($"{f.Name}: {((FieldValue<decimal>)val).Value}");
+                    break;
+                case FieldType.Boolean:
+                    Console.WriteLine($"{f.Name}: {((FieldValue<bool>)val).Value}");
+                    break;
+                default:
+                    Console.WriteLine($"{f.Name}: {((FieldValue<string>)val).Value}");
+                    break;
+            }
+        }
+    }
+
+    public class ItemModel
+    {
+        public string CustomId { get; set; } = string.Empty;
+    }
+
+    public class FieldDefinition
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public FieldType Type { get; set; }
+    }
+
+    public enum FieldType
+    {
+        SingleLine,
+        MultiLine,
+        Number,
+        Boolean,
+        Link
+    }
+
+    // Generic wrapper for type-safe field values
+    public class FieldValue<T>
+    {
+        public T Value { get; set; }
+        public FieldValue(T value) => Value = value;
+    }
+}

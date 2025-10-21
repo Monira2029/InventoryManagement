@@ -1,100 +1,71 @@
-@using Microsoft.EntityFrameworkCore
 @page "/inventories"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
-<h3>📦 Inventories</h3>
+<h3>Inventories</h3>
 
-@if (isLoading)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <button class="btn btn-primary mb-3" @onclick="NewInventory">Add New Inventory</button>
+<div class="d-flex mb-3">
+    <input class="form-control me-2" placeholder="Search..." @bind="searchTerm" />
+    <button class="btn btn-primary" @onclick="OpenCreate">Create Inventory</button>
 
-    @if (showForm)
-    {
-        <EditForm Model="newInventory" OnValidSubmit="SaveInventory">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="mb-3">
-                <label>Title</label>
-                <InputText class="form-control" @bind="newInventory.Title" />
-            </div>
+    <div class="ms-auto">
+        <span class="me-2">Tags:</span>
+        @foreach (var t in allTags)
+        {
+            <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => FilterByTag(t.Name)">
+                @t.Name
+            </button>
+        }
+    </div>
+</div>
 
-            <div class="mb-3">
-                <label>Description</label>
-                <InputTextArea class="form-control" @bind="newInventory.Description" />
-            </div>
-
-            <button type="submit" class="btn btn-success">💾 Save</button>
-            <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
-        </EditForm>
-    }
-    else
-    {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var inv in inventories)
-                {
-                    <tr>
-                        <td>@inv.Title</td>
-                        <td>@inv.Description</td>
-                        <td>@inv.CreatedAt.ToLocalTime()</td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" @onclick="() => Delete(inv.Id)">🗑 Delete</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Public</th>
+            <th>Items</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var inv in inventories)
+        {
+            <tr>
+                <td><a href="@($"/inventory/{inv.Id}")">@inv.Title</a></td>
+                <td>@inv.Category?.Name</td>
+                <td>@(inv.IsPublic ? "Yes" : "No")</td>
+                <td>@(itemCounts.ContainsKey(inv.Id) ? itemCounts[inv.Id] : 0)</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 @code {
     private List<Inventory> inventories = new();
-    private Inventory newInventory = new();
-    private bool showForm = false;
-    private bool isLoading = true;
+    private List<Tag> allTags = new();
+    private Dictionary<int, int> itemCounts = new();
+    private string searchTerm = "";
 
     protected override async Task OnInitializedAsync()
     {
-        inventories = await Db.Inventories.OrderByDescending(x => x.CreatedAt).ToListAsync();
-        isLoading = false;
+        allTags = await Db.Tags.OrderBy(t => t.Name).ToListAsync();
+        inventories = await Db.Inventories.Include(i => i.Category).ToListAsync();
+
+        // ✅ Efficient: fetch counts in one go
+        var counts = await Db.Items
+            .GroupBy(i => i.InventoryId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        itemCounts = counts.ToDictionary(x => x.Key, x => x.Count);
     }
 
-    void NewInventory()
-    {
-        newInventory = new();
-        showForm = true;
-    }
+    void OpenCreate() => Nav.NavigateTo("/inventory/create");
 
-    void Cancel() => showForm = false;
-
-    async Task SaveInventory()
-    {
-        Db.Inventories.Add(newInventory);
-        await Db.SaveChangesAsync();
-        showForm = false;
-        inventories = await Db.Inventories.ToListAsync();
-    }
-
-    async Task Delete(int id)
-    {
-        var inv = await Db.Inventories.FindAsync(id);
-        if (inv != null)
-        {
-            Db.Inventories.Remove(inv);
-            await Db.SaveChangesAsync();
-            inventories = await Db.Inventories.ToListAsync();
-        }
-    }
+    void FilterByTag(string tag) => Nav.NavigateTo($"/search?tag={Uri.EscapeDataString(tag)}");
 }

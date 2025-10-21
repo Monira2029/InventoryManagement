@@ -18,10 +18,13 @@ namespace InventoryManagement.Models
     public bool IsPublic { get; set; } = false;
     public string CreatedById { get; set; } = string.Empty; // IdentityUser.Id
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public class InventorySequence { public int InventoryId {get;set;} public long NextValue {get;set;} }
 
     public ICollection<InventoryTag>? InventoryTags { get; set; }
     public ICollection<CustomField>? CustomFields { get; set; }
     public ICollection<InventoryAccess>? AccessList { get; set; }
+    public string? CustomIdTemplateJson { get; set; } // JSON array of elements and format
+
 }
 
 }
