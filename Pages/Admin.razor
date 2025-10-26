@@ -1,0 +1,63 @@
+@page "/user-inventories"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ApplicationDbContext Db
+
+<h3>My Inventories</h3>
+
+@if (userInventories == null)
+{
+    <p>Loading…</p>
+}
+else if (!userInventories.Any())
+{
+    <p>You have no inventories.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Title</th><th>Category</th><th>Public</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var inv in userInventories)
+        {
+            <tr>
+                <td>@inv.Title</td>
+                <td>@inv.Category?.Name</td>
+                <td>@(inv.IsPublic ? "Yes" : "No")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Inventory>? userInventories;
+    private IdentityUser? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the current user
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            currentUser = await UserManager.GetUserAsync(user);
+            if (currentUser != null)
+            {
+                userInventories = await Db.Inventories
+                    .Include(i => i.Category)
+                    .Where(i => i.CreatedById == currentUser.Id)
+                    .ToListAsync();
+            }
+        }
+        else
+        {
+            userInventories = new List<Inventory>();
+        }
+    }
+}

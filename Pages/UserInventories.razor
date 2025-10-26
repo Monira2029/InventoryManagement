@@ -1,0 +1,62 @@
+@page "/my-inventories"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<IdentityUser> UserManager
+@inject ApplicationDbContext Db
+@inject AuthenticationStateProvider Auth
+
+<h3>My Inventories</h3>
+
+@if (myInventories == null)
+{
+    <p>Loading…</p>
+}
+else if (!myInventories.Any())
+{
+    <p>You have no inventories.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Title</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var inv in myInventories)
+        {
+            <tr>
+                <td>@inv.Title</td>
+                <td>@inv.CreatedAt.ToString("g")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<Inventory>? myInventories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            // Use IdentityUser.Id instead of email if you store Id in CreatedById
+            var currentUser = await UserManager.GetUserAsync(user);
+            if (currentUser != null)
+            {
+                myInventories = await Db.Inventories
+                    .Where(i => i.CreatedById == currentUser.Id)
+                    .OrderByDescending(i => i.CreatedAt)
+                    .ToListAsync();
+            }
+        }
+        else
+        {
+            myInventories = new List<Inventory>();
+        }
+    }
+}

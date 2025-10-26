@@ -8,29 +8,27 @@ using InventoryManagement.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Add services ---
-
-// Database context
+// --- Database ---
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))); // or UseSqlServer
 
-// Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+// --- Identity ---
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = false; // adjust as needed
 })
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddRoles<IdentityRole>()                     // Add role support
+.AddEntityFrameworkStores<ApplicationDbContext>(); // link to your DbContext
 
-// Custom services
+// --- Custom services ---
 builder.Services.AddScoped<ICustomIdGenerator, CustomIdGenerator>();
 
-// Blazor and SignalR
+// --- Blazor and SignalR ---
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSignalR();
 
-// Third-party
+// --- Third-party services ---
 builder.Services.AddBlazoredLocalStorage();
 
 var app = builder.Build();
@@ -60,10 +58,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();  // ✅ Only once
+app.UseAuthorization();   // ✅ Only once
 
-// --- Endpoint mapping ---
+// --- Endpoints ---
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
