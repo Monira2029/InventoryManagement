@@ -1,0 +1,51 @@
+@page "/search"
+@inject ApplicationDbContext Db
+
+<h3>Search Inventories</h3>
+
+<InputText class="form-control" placeholder="Type to search..." @bind-Value="query" @oninput="OnSearch" />
+
+@if (results == null)
+{
+    <p class="mt-2 text-muted">Start typing to search...</p>
+}
+else if (results.Count == 0)
+{
+    <p class="mt-2 text-danger">No results found.</p>
+}
+else
+{
+    <table class="table table-striped mt-2">
+        <thead><tr><th>Title</th><th>Description</th><th>Tags</th></tr></thead>
+        <tbody>
+        @foreach (var inv in results)
+        {
+            <tr>
+                <td>@inv.Title</td>
+                <td>@inv.Description</td>
+                <td>@inv.Tags</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    string query = "";
+    List<Inventory>? results;
+
+    async Task OnSearch(ChangeEventArgs e)
+    {
+        query = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            results = null;
+            return;
+        }
+
+        results = await Db.Inventories
+            .Where(i => i.Title.Contains(query) || i.Description.Contains(query) || i.Tags.Contains(query))
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync();
+    }
+}

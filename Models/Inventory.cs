@@ -24,7 +24,7 @@ namespace InventoryManagement.Models
     public ICollection<CustomField>? CustomFields { get; set; }
     public ICollection<InventoryAccess>? AccessList { get; set; }
     public string? CustomIdTemplateJson { get; set; } // JSON array of elements and format
-
+    public string Tags { get; set; } = string.Empty; // e.g. "electronics,office,tools"
 }
 
 }

@@ -2,9 +2,28 @@
 
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Authorization
+@using InventoryManagement.Models
 @inject ApplicationDbContext Db
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthStateProvider
+
+<h5>Tag Cloud</h5>
+<div>
+    @if (tagCloud.Any())
+    {
+        @foreach (var tag in tagCloud)
+        {
+            <span class="badge bg-info text-dark m-1" style="cursor:pointer"
+                  @onclick="() => FilterByTag(tag)">
+                @tag
+            </span>
+        }
+    }
+    else
+    {
+        <p><em>No tags found.</em></p>
+    }
+</div>
 
 <h3>Inventories</h3>
 
@@ -16,11 +35,20 @@
         <span class="me-2">Tags:</span>
         @foreach (var t in allTags)
         {
-            <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => FilterByTag(t.Name)">
+            <button class="btn btn-sm btn-outline-secondary me-1"
+                    @onclick="() => FilterByTag(t.Name)">
                 @t.Name
             </button>
         }
     </div>
+</div>
+
+<!-- Example form for editing/creating inventory -->
+<div class="form-group mt-2">
+    <label>Tags (comma separated)</label>
+    <InputText class="form-control"
+               @bind-Value="currentInventory.Tags"
+               placeholder="e.g., electronics,office" />
 </div>
 
 <table class="table table-striped">
@@ -33,13 +61,22 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var inv in inventories)
+        @if (inventories.Any())
+        {
+            @foreach (var inv in inventories)
+            {
+                <tr>
+                    <td><a href="@($"/inventory/{inv.Id}")">@inv.Title</a></td>
+                    <td>@inv.Category?.Name</td>
+                    <td>@(inv.IsPublic ? "Yes" : "No")</td>
+                    <td>@(itemCounts.ContainsKey(inv.Id) ? itemCounts[inv.Id] : 0)</td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td><a href="@($"/inventory/{inv.Id}")">@inv.Title</a></td>
-                <td>@inv.Category?.Name</td>
-                <td>@(inv.IsPublic ? "Yes" : "No")</td>
-                <td>@(itemCounts.ContainsKey(inv.Id) ? itemCounts[inv.Id] : 0)</td>
+                <td colspan="4"><em>No inventories found.</em></td>
             </tr>
         }
     </tbody>
@@ -48,15 +85,30 @@
 @code {
     private List<Inventory> inventories = new();
     private List<Tag> allTags = new();
+    private List<string> tagCloud = new();
+    private Inventory currentInventory = new();
     private Dictionary<int, int> itemCounts = new();
     private string searchTerm = "";
 
     protected override async Task OnInitializedAsync()
     {
+        // Load all tags
         allTags = await Db.Tags.OrderBy(t => t.Name).ToListAsync();
-        inventories = await Db.Inventories.Include(i => i.Category).ToListAsync();
 
-        // ✅ Efficient: fetch counts in one go
+        // Load all inventories with categories
+        inventories = await Db.Inventories
+            .Include(i => i.Category)
+            .ToListAsync();
+
+        // Build the tag cloud from all inventory tag strings
+        tagCloud = inventories
+            .SelectMany(i => (i.Tags ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(t => t)
+            .ToList();
+
+        // Efficiently get item counts per inventory
         var counts = await Db.Items
             .GroupBy(i => i.InventoryId)
             .Select(g => new { g.Key, Count = g.Count() })
@@ -67,5 +119,6 @@
 
     void OpenCreate() => Nav.NavigateTo("/inventory/create");
 
-    void FilterByTag(string tag) => Nav.NavigateTo($"/search?tag={Uri.EscapeDataString(tag)}");
+    void FilterByTag(string tag)
+        => Nav.NavigateTo($"/search?tag={Uri.EscapeDataString(tag)}");
 }
